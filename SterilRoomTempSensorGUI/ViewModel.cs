@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace SterilRoomTempSensorGUI
     {
         public static PlotModel ChartModel { get; private set; }
 
+        const string HMSFormat = "HH\\:mm\\:ss";
         List<LineSeries> SensorSuhuSeries { get; set; } = new List<LineSeries>(6);
         DateTime StartRecordDate { get; set; }
         LineAnnotation CurrTimeAnnotation { get; set; }
@@ -36,6 +38,9 @@ namespace SterilRoomTempSensorGUI
             ChartModel = new PlotModel()
             {
                 Title = "Temperatur Ruang Sterilisasi",
+                Subtitle = StartRecordDate.ToString($"DISCONNECTED - {HMSFormat} - dd / MMMM / yyyy", CultureInfo.GetCultureInfo("id-ID")),
+                TitleFontSize = 24,
+                SubtitleFontSize = 20,
                 PlotAreaBorderColor = OxyColors.Gray,
                 SubtitleColor = OxyColors.DarkGreen,
                 SubtitleFontWeight = 500,
@@ -59,8 +64,8 @@ namespace SterilRoomTempSensorGUI
                 MajorStep = 10,
                 MinorStep = 2,
                 MajorGridlineStyle = LineStyle.Automatic,
-                MajorGridlineThickness = 1,
-                MajorGridlineColor = OxyColors.LightSlateGray,
+                MajorGridlineThickness = 1.5,
+                MajorGridlineColor = OxyColors.LightGray,
                 MinorGridlineStyle = LineStyle.Automatic,
                 MinorGridlineThickness = 0.5,
                 MinorGridlineColor = OxyColors.LightGray,
@@ -68,7 +73,7 @@ namespace SterilRoomTempSensorGUI
             ChartModel.Axes.Add(new DateTimeAxis()
             {
                 Title = "Waktu Sistem",
-                StringFormat = "HH:mm:ss",
+                StringFormat = HMSFormat,
                 Position = AxisPosition.Bottom,
                 IntervalType = DateTimeIntervalType.Seconds,
                 //IntervalLength = 36,
@@ -77,11 +82,8 @@ namespace SterilRoomTempSensorGUI
                 MinimumRange = 0.0005,
                 MaximumRange = 1,
                 MajorGridlineStyle = LineStyle.Automatic,
-                MajorGridlineThickness = 1,
+                MajorGridlineThickness = 1.5,
                 MajorGridlineColor = OxyColors.LightGray,
-                MinorGridlineStyle = LineStyle.Automatic,
-                MinorGridlineThickness = 0.5,
-                MinorGridlineColor = OxyColors.LightGray
             });
             ChartModel.Axes[1].Zoom(Axis.ToDouble(StartRecordDate), Axis.ToDouble(StartRecordDate + TimeSpan.FromMinutes(1)));
 
@@ -92,7 +94,8 @@ namespace SterilRoomTempSensorGUI
                     Title = $"Sensor {i + 1}",
                     TrackerFormatString = "Data {0}\n" +
                                             "Suhu : {4:0.##}°C\n" +
-                                            "Pukul {2:HH:mm:ss}\n"
+                                            "Pukul {2:" + HMSFormat + "}\n",
+                    LineStyle = (LineStyle)i
                 });
                 ChartModel.Series.Add(SensorSuhuSeries[i]);
             }
@@ -100,6 +103,7 @@ namespace SterilRoomTempSensorGUI
             CurrTimeAnnotation = new LineAnnotation()
             {
                 Type = LineAnnotationType.Vertical,
+                X = Axis.ToDouble(StartRecordDate),
             };
             ChartModel.Annotations.Add(CurrTimeAnnotation);
 
@@ -123,11 +127,11 @@ namespace SterilRoomTempSensorGUI
             SensorSuhuSeries[5].Points.Add(new DataPoint(Axis.ToDouble(DateTime.Now), 42.84 + randomizer.NextDouble().Remap(0.0f, 1.0f, -2.0f, 2.0f)));
 
             CurrTimeAnnotation.X = Axis.ToDouble(DateTime.Now);
-            CurrTimeAnnotation.ToolTip = $"{DateTime.Now.ToString("HH:mm:ss")}";
+            CurrTimeAnnotation.ToolTip = DateTime.Now.ToString(HMSFormat);
 
             //if ((ChartModel.Annotations[0] as LineAnnotation).X > StartRecordDate + TimeSpan.)
 
-            ChartModel.Axes[1].Pan(-60.0);
+            //ChartModel.Axes[1].Pan(-60.0);
             ChartModel.InvalidatePlot(false);
         }
 
@@ -137,6 +141,23 @@ namespace SterilRoomTempSensorGUI
             ChartModel.InvalidatePlot(false);
         }
 
-        private void DigitalClockRefresh(object sender, ElapsedEventArgs e) => ChartModel.Subtitle = DateTime.Now.ToString("HH:mm:ss - dd/MMM/yyyy");
+        private void DigitalClockRefresh(object sender, ElapsedEventArgs e)
+        {
+            var conn = "";
+            if (MainWindow.ConnectionController.IsConnected)
+            {
+                conn = "CONNECTED";
+                ChartModel.SubtitleColor = OxyColors.Green;
+            }
+            else
+            {
+                conn = "DISCONNECTED";
+                ChartModel.SubtitleColor = OxyColors.Red;
+            }
+
+
+            ChartModel.Subtitle = DateTime.Now.ToString($"{conn} - {HMSFormat} - dd / MMMM / yyyy",CultureInfo.GetCultureInfo("id-ID"));
+            ChartModel.InvalidatePlot(false);
+        }
     }
 }

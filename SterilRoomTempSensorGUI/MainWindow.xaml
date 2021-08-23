@@ -7,10 +7,32 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Title="Temperatur Ruang Sterilisasi" Height="720" Width="1280" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
     <Window.DataContext>
         <local:ViewModel/>
     </Window.DataContext>
     <Grid>
         <oxy:PlotView Model="{Binding ChartModel}"/>
+        <Grid Visibility="{Binding ConnOverlayVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.DataContext>
+                <local:ConnectionController/>
+            </Grid.DataContext>
+            <Rectangle Fill="#BF000000"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image x:Name="LoadingIcon" Source="Resources/loading-icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="0"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+                <Label Content="Connecting to Device..." FontSize="24" FontFamily="Segoe UI Semibold" Foreground="White"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
