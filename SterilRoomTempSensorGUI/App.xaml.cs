@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace SterilRoomTempSensorGUI
 {
@@ -13,5 +14,11 @@ namespace SterilRoomTempSensorGUI
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            ToastNotificationManagerCompat.OnActivated += SterilRoomTempSensorGUI.MainWindow.ToastNotificationManagerCompat_OnActivated;
+
+            base.OnStartup(e);
+        }
     }
 }

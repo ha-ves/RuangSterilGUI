@@ -5,34 +5,76 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SterilRoomTempSensorGUI"
         xmlns:oxy="http://oxyplot.org/wpf"
+        
         mc:Ignorable="d"
-        Title="Temperatur Ruang Sterilisasi" Height="720" Width="1280" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png">
+        Title="Temperatur Ruang Sterilisasi" Height="900" Width="1600" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
-    <Window.DataContext>
-        <local:ViewModel/>
-    </Window.DataContext>
     <Grid>
-        <oxy:PlotView Model="{Binding ChartModel}"/>
-        <Grid Visibility="{Binding ConnOverlayVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="10*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.ColumnSpan="3" Margin="0,5,0,0" HorizontalAlignment="Center">
+            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="TEMPERATUR RUANG STERILISASI" FontSize="30" Padding="0" FontWeight="Black"/>
+            <Label x:Name="lbl_status" Content="{Binding CurrAppStatus, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Padding="0" FontWeight="Bold" TextOptions.TextFormattingMode="Display"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,25,0">
+            <Grid.BitmapEffect>
+                <BlurBitmapEffect Radius="{Binding OverlayBlurRadius, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            </Grid.BitmapEffect>
             <Grid.DataContext>
-                <local:ConnectionController/>
+                <local:PlotViewModel/>
             </Grid.DataContext>
-            <Rectangle Fill="#BF000000"/>
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image x:Name="LoadingIcon" Source="Resources/loading-icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" RenderTransformOrigin="0.5,0.5">
-                    <Image.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform/>
-                            <SkewTransform/>
-                            <RotateTransform Angle="0"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </Image.RenderTransform>
-                </Image>
-                <Label Content="Connecting to Device..." FontSize="24" FontFamily="Segoe UI Semibold" Foreground="White"/>
-            </StackPanel>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <oxy:PlotView Model="{Binding ChartViews[0]}" />
+            <oxy:PlotView Model="{Binding ChartViews[1]}" Grid.Column="1"/>
+            <oxy:PlotView Model="{Binding ChartViews[2]}" Grid.Column="2"/>
+            <oxy:PlotView Model="{Binding ChartViews[3]}" Grid.Row="1"/>
+            <oxy:PlotView Model="{Binding ChartViews[4]}" Grid.Row="1" Grid.Column="1"/>
+            <oxy:PlotView Model="{Binding ChartViews[5]}" Grid.Row="1" Grid.Column="2"/>
+        </Grid>
+
+        <Grid x:Name="_connOverlay" Grid.ColumnSpan="3" Grid.RowSpan="3" Visibility="{Binding ConnOverlayVisibility, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+            <Border CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#7F000000" Padding="50">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image x:Name="LoadingIcon" Source="Resources/loading-icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" RenderTransformOrigin="0.5,0.5" Height="80" Panel.ZIndex="1">
+                        <Image.BitmapEffect>
+                            <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
+                        </Image.BitmapEffect>
+                        <Image.RenderTransform>
+                            <RotateTransform/>
+                        </Image.RenderTransform>
+                        <Image.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                    To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Image.Triggers>
+                    </Image>
+                    <Label Content="Connecting to Device ..." FontSize="36" FontFamily="Segoe UI Semibold" Foreground="White">
+                        <Label.BitmapEffect>
+                            <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
+                        </Label.BitmapEffect>
+                    </Label>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>
