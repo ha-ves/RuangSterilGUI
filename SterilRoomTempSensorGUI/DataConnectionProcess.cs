@@ -80,8 +80,8 @@ namespace SterilRoomTempSensorGUI
                     foreach(var gatewayIP in interf.GetIPProperties().GatewayAddresses)
                     {
                         Debug.WriteLine($"Try Connecting [ {gatewayIP.Address} ]");
-                        //deviceEP = new IPEndPoint(gatewayIP.Address, 12727);
-                        deviceEP = new IPEndPoint(IPAddress.Loopback, 12727);
+                        deviceEP = new IPEndPoint(gatewayIP.Address, 12727);
+                        //deviceEP = new IPEndPoint(IPAddress.Loopback, 12727);
 
                         TcpClient = new TcpClient() { NoDelay = true };
                         try
