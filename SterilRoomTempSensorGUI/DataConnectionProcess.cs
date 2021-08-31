@@ -28,46 +28,20 @@ namespace SterilRoomTempSensorGUI
         byte[] recvBuf;
         readonly List<char> recvHeading;
 
+        List<bool> suhuUpdated;
+        List<double> suhus;
+
         public DataConnectionProcess()
         {
             recvHeading = new List<char>() { '@', '$', '%', '&', '*', '!' };
             recvBuf = new byte[8192];
             IsConnected = false;
+            suhuUpdated = new List<bool>(6) { false, false, false, false, false, false };
+            suhus = new List<double>(6) { 0, 0, 0, 0, 0, 0 };
 
             receivingArgs = new SocketAsyncEventArgs();
             receivingArgs.Completed += TcpReceiveData;
             receivingArgs.SetBuffer(recvBuf, 0, recvBuf.Length);
-        }
-
-        private void TcpReceiveData(object sender, SocketAsyncEventArgs e)
-        {
-            TcpClient.Client.ReceiveAsync(receivingArgs);
-            
-            Debug.WriteLine($"New data from [ {e.RemoteEndPoint} ]");
-            Debug.WriteLine("Data :\n");
-            for (int i = 0; i < e.BytesTransferred; i++)
-            {
-                Debug.Write(e.Buffer[i].ToString("{0:X2}") + ' ');
-            }
-            Debug.WriteLine("");
-
-            ParseData(e);
-        }
-
-        private void ParseData(SocketAsyncEventArgs e, double suhu = 0)
-        {
-            var data = Encoding.ASCII.GetString(recvBuf.Take(e.BytesTransferred).ToArray()).TrimEnd('\n', '\r');
-            Debug.WriteLine($"Data : {data}");
-
-            if (!recvHeading.Contains((char)data[0])
-                || !data[data.Length - 1].Equals('#')
-                || !double.TryParse(data.TrimStart(recvHeading.ToArray()).TrimEnd('#'), out suhu))
-            {
-                Debug.WriteLine("Data is not valid.");
-                return;
-            }
-
-            PlotViewModel.AddDataSuhu(recvHeading.IndexOf((char)data[0]), suhu);
         }
 
         public async Task StartConnectAsync()
@@ -80,26 +54,19 @@ namespace SterilRoomTempSensorGUI
                     foreach(var gatewayIP in interf.GetIPProperties().GatewayAddresses)
                     {
                         Debug.WriteLine($"Try Connecting [ {gatewayIP.Address} ]");
-                        deviceEP = new IPEndPoint(gatewayIP.Address, 12727);
+
                         //deviceEP = new IPEndPoint(IPAddress.Loopback, 12727);
+                        deviceEP = new IPEndPoint(gatewayIP.Address, 12727);
 
                         TcpClient = new TcpClient() { NoDelay = true };
-                        try
+                        if (await Task.WhenAny(TcpClient.Client.ConnectAsync(deviceEP), Task.Delay(1000)) != null && TcpClient.Connected)
                         {
-                            if(await Task.WhenAny(TcpClient.Client.ConnectAsync(deviceEP), Task.Delay(1000)) != null && TcpClient.Connected)
-                            {
-                                IsConnected = true;
-                                receivingArgs.RemoteEndPoint = deviceEP;
-                                TcpClient.Client.ReceiveAsync(receivingArgs);
-                                MainWindow.Current.AppStartNormal();
-                                MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
-                                Debug.WriteLine($"Connected to access point [ {TcpClient.Client.RemoteEndPoint} ]");
-                                return;
-                            }
-                        }
-                        catch (Exception Exc)
-                        {
-                            Debug.WriteLine($"[StartConnectAsync] { Exc.Message }");
+                            IsConnected = true;
+                            receivingArgs.RemoteEndPoint = deviceEP;
+                            TcpClient.Client.ReceiveAsync(receivingArgs);
+                            MainWindow.Current.AppStartNormal();
+                            MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
+                            Debug.WriteLine($"Connected to access point [ {TcpClient.Client.RemoteEndPoint} ]");
                             return;
                         }
                     }
@@ -113,6 +80,35 @@ namespace SterilRoomTempSensorGUI
                 MessageBox.Show("Platform anda tidak memiliki jaringan (Network). Aplikasi tidak bisa dijalankan.", "ERROR : Tidak ada jaringan!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             StartConnectAsync();
+        }
+
+        private void TcpReceiveData(object sender, SocketAsyncEventArgs e)
+        {
+            ParseData(e);
+            TcpClient.Client.ReceiveAsync(receivingArgs);
+        }
+
+        private async Task ParseData(SocketAsyncEventArgs e, double suhu = 0)
+        {
+            List<string> datas = Encoding.ASCII.GetString(recvBuf.Take(e.BytesTransferred).ToArray()).TrimEnd('\n', '\r').Split('#').ToList();
+            if (string.IsNullOrEmpty(datas.Last())) datas.Remove(datas.Last());
+
+            foreach (var data in datas)
+            {
+                if (recvHeading.Contains(data[0]) && double.TryParse(data.TrimStart(recvHeading.ToArray()), out suhu))
+                {
+                    var index = recvHeading.IndexOf(data[0]);
+                    suhus[index] = suhu;
+                    PlotViewModel.AddDataSuhu(index, suhu);
+                    suhuUpdated[index] = true;
+                }
+                if (suhuUpdated.TrueForAll(it => it == true))
+                {
+                    suhuUpdated = new List<bool>(6) { false, false, false, false, false, false };
+                    SqliteDbAccess.Current.SaveDataSuhu(new DataSuhu(suhus, DateTime.Now));
+                    suhus = new List<double>(6) { 0, 0, 0, 0, 0, 0 };
+                }
+            }
         }
     }
 }

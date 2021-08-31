@@ -31,6 +31,7 @@ using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
 using ToastNotifications.Core;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 
 namespace SterilRoomTempSensorGUI
 {
@@ -62,26 +63,17 @@ namespace SterilRoomTempSensorGUI
         static int _overlayBlurRadius = 10;
         public int OverlayBlurRadius { get { return _overlayBlurRadius; } private set { _overlayBlurRadius = value; OnPropertyChanged("OverlayBlurRadius"); } }
 
+        DateTime _startTime;
+        public DateTime StartTime { get { return _startTime; } set { _startTime = value; OnPropertyChanged("StartTime"); } }
+        DateTime _endTime;
+        public DateTime EndTime { get { return _endTime; } set { _endTime = value; OnPropertyChanged("EndTime"); } }
+
+        public List<DataSuhu> dataList { get; private set; }
+
         public static DataConnectionProcess DataConnController { get; private set; }
         public static SqliteDbAccess LocalDatabase { get; private set; }
 
-        public Notifier notifier = new Notifier(cfg =>
-        {
-            cfg.DisplayOptions.TopMost = false;
-            cfg.DisplayOptions.Width = 500;
-
-            cfg.PositionProvider = new WindowPositionProvider(
-                parentWindow: App.Current.MainWindow,
-                corner: Corner.TopRight,
-                offsetX: 10,
-                offsetY: 10);
-
-            cfg.LifetimeSupervisor = new TimeAndCountBasedLifetimeSupervisor(
-                notificationLifetime: TimeSpan.FromSeconds(10),
-                maximumNotificationCount: MaximumNotificationCount.FromCount(5));
-
-            cfg.Dispatcher = Application.Current.Dispatcher;
-        });
+        public Notifier[] notifier = new Notifier[6];
 
         [DllImport("user32.dll")]
         public static extern int FlashWindow(IntPtr Hwnd, bool Revert);
@@ -96,14 +88,123 @@ namespace SterilRoomTempSensorGUI
             RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
 #endif
             Current = this;
+            DataContext = this;
             System.Threading.Thread.CurrentThread.Name = "MAIN UI THREAD";
+
+            PrepareNotifier();
+            _startTime = DateTime.Today;
+            _endTime = DateTime.Today + TimeSpan.FromDays(1);
+
             InitializeComponent();
 
             Loaded += OnLoaded;
         }
 
+        private void PrepareNotifier()
+        {
+            notifier[0] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopLeft,
+                    offsetX: 10,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+            notifier[1] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopLeft,
+                    offsetX: 200 + 20,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+            notifier[2] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopLeft,
+                    offsetX: 400 + 30,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+
+            notifier[3] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopRight,
+                    offsetX: 400 + 30,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+            notifier[4] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopRight,
+                    offsetX: 200 + 20,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+            notifier[5] = new Notifier(cfg =>
+            {
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 200;
+
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: App.Current.MainWindow,
+                    corner: Corner.TopRight,
+                    offsetX: 10,
+                    offsetY: 30);
+
+                cfg.LifetimeSupervisor = new CountBasedLifetimeSupervisor(
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(0));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+        }
+
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
+                Title += " v" + System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString();
             StartLoading();
 
             digitalClockTimer.Elapsed += DigitalClockRefresh;
@@ -123,23 +224,32 @@ namespace SterilRoomTempSensorGUI
         {
             ToggleOverlay(false);
 
+#if DEBUG
+            //await Task.Delay(2000);
             //dummyTimer.Elapsed += AddData;
             //dummyTimer.Start();
-
-            await Task.Delay(2000);
-            NotificationToasts.DisconnectedToast.Show();
-            notifier.ShowInformation("TESUTO");
+#endif
         }
 
+#if DEBUG
         Random randomizer = new Random(67676767);
         private void AddData(object sender, ElapsedEventArgs e)
         {
+            double value = 0.0;
+            List<double> suhus = new List<double>(6) { 0, 0, 0, 0, 0, 0 };
             for (int i = 0; i < 5; i++)
             {
-                PlotViewModel.AddDataSuhu(i, /*(i + 1) * 7.14*/ 50.0 + randomizer.NextDouble().Remap(0.0f, 1.0f, -2.0f, 2.0f));
+                value = /*(i + 1) * 7.14*/ 50.0 + randomizer.NextDouble().Remap(0.0f, 1.0f, -2.0f, 2.0f);
+                suhus[i] = value;
+                PlotViewModel.AddDataSuhu(i, value);
             }
-            PlotViewModel.AddDataSuhu(5, 46.0 + randomizer.NextDouble().Remap(0.0f, 1.0f, -2.0f, 2.0f));
+            value = 46.0 + randomizer.NextDouble().Remap(0.0f, 1.0f, -2.0f, 2.0f);
+            suhus[5] = value;
+            PlotViewModel.AddDataSuhu(5, value);
+
+            SqliteDbAccess.Current.SaveDataSuhu(new DataSuhu(suhus, DateTime.Now));
         }
+#endif
 
         public static void ToastNotificationManagerCompat_OnActivated(ToastNotificationActivatedEventArgsCompat toastArgs)
         {
@@ -176,6 +286,15 @@ namespace SterilRoomTempSensorGUI
         {
             ConnOverlayVisibility = visible;
             OverlayBlurRadius = visible ? 10 : 0;
+        }
+
+        private void PopulateDataTable(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("StartTime : " + StartTime.ToString("G"));
+            Debug.WriteLine("EndTime : " + EndTime.ToString("G"));
+
+            dataList = new List<DataSuhu>(SqliteDbAccess.Current.LoadDatalistSuhu(StartTime, EndTime).OrderByDescending(it => it.Waktu));
+            OnPropertyChanged("dataList");
         }
     }
 }

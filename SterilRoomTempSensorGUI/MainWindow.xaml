@@ -7,74 +7,111 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         
         mc:Ignorable="d"
-        Title="Temperatur Ruang Sterilisasi" Height="900" Width="1600" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png">
+        Title="Temperatur Ruang Sterilisasi" Height="900" Width="1600" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="10*"/>
-        </Grid.RowDefinitions>
+    <TabControl SelectedIndex="0">
+        <TabItem Header="Monitor">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="10*"/>
+                </Grid.RowDefinitions>
 
-        <StackPanel Grid.ColumnSpan="3" Margin="0,5,0,0" HorizontalAlignment="Center">
-            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="TEMPERATUR RUANG STERILISASI" FontSize="30" Padding="0" FontWeight="Black"/>
-            <Label x:Name="lbl_status" Content="{Binding CurrAppStatus, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Padding="0" FontWeight="Bold" TextOptions.TextFormattingMode="Display"/>
-        </StackPanel>
+                <StackPanel Grid.ColumnSpan="3" Margin="0,5,0,0" HorizontalAlignment="Center">
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="TEMPERATUR RUANG STERILISASI" FontSize="30" Padding="0" FontWeight="Black"/>
+                    <Label x:Name="lbl_status" Content="{Binding CurrAppStatus, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Padding="0" FontWeight="Bold" TextOptions.TextFormattingMode="Display"/>
+                </StackPanel>
 
-        <Grid Grid.Row="1" Margin="0,0,25,0">
-            <Grid.BitmapEffect>
-                <BlurBitmapEffect Radius="{Binding OverlayBlurRadius, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
-            </Grid.BitmapEffect>
-            <Grid.DataContext>
-                <local:PlotViewModel/>
-            </Grid.DataContext>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-            </Grid.ColumnDefinitions>
-            <oxy:PlotView Model="{Binding ChartViews[0]}" />
-            <oxy:PlotView Model="{Binding ChartViews[1]}" Grid.Column="1"/>
-            <oxy:PlotView Model="{Binding ChartViews[2]}" Grid.Column="2"/>
-            <oxy:PlotView Model="{Binding ChartViews[3]}" Grid.Row="1"/>
-            <oxy:PlotView Model="{Binding ChartViews[4]}" Grid.Row="1" Grid.Column="1"/>
-            <oxy:PlotView Model="{Binding ChartViews[5]}" Grid.Row="1" Grid.Column="2"/>
-        </Grid>
+                <Grid Grid.Row="1" Margin="0,0,25,0">
+                    <Grid.BitmapEffect>
+                        <BlurBitmapEffect Radius="{Binding OverlayBlurRadius, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                    </Grid.BitmapEffect>
+                    <Grid.DataContext>
+                        <local:PlotViewModel/>
+                    </Grid.DataContext>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <oxy:PlotView Model="{Binding ChartViews[0]}" />
+                    <oxy:PlotView Model="{Binding ChartViews[1]}" Grid.Column="1"/>
+                    <oxy:PlotView Model="{Binding ChartViews[2]}" Grid.Column="2"/>
+                    <oxy:PlotView Model="{Binding ChartViews[3]}" Grid.Row="1"/>
+                    <oxy:PlotView Model="{Binding ChartViews[4]}" Grid.Row="1" Grid.Column="1"/>
+                    <oxy:PlotView Model="{Binding ChartViews[5]}" Grid.Row="1" Grid.Column="2"/>
+                </Grid>
 
-        <Grid x:Name="_connOverlay" Grid.ColumnSpan="3" Grid.RowSpan="3" Visibility="{Binding ConnOverlayVisibility, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
-            <Border CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#7F000000" Padding="50">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Image x:Name="LoadingIcon" Source="Resources/loading-icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" RenderTransformOrigin="0.5,0.5" Height="80" Panel.ZIndex="1">
-                        <Image.BitmapEffect>
-                            <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
-                        </Image.BitmapEffect>
-                        <Image.RenderTransform>
-                            <RotateTransform/>
-                        </Image.RenderTransform>
-                        <Image.Triggers>
-                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
+                <Grid x:Name="_connOverlay" Grid.ColumnSpan="3" Grid.RowSpan="3" Visibility="{Binding ConnOverlayVisibility, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Border CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#7F000000" Padding="50">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image x:Name="LoadingIcon" Source="Resources/loading-icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" RenderTransformOrigin="0.5,0.5" Height="80" Panel.ZIndex="1">
+                                <Image.BitmapEffect>
+                                    <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
+                                </Image.BitmapEffect>
+                                <Image.RenderTransform>
+                                    <RotateTransform/>
+                                </Image.RenderTransform>
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                                     Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
                                     To="360" Duration="0:0:1" RepeatBehavior="Forever" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Image.Triggers>
-                    </Image>
-                    <Label Content="Connecting to Device ..." FontSize="36" FontFamily="Segoe UI Semibold" Foreground="White">
-                        <Label.BitmapEffect>
-                            <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
-                        </Label.BitmapEffect>
-                    </Label>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Label Content="Connecting to Device ..." FontSize="36" FontFamily="Segoe UI Semibold" Foreground="White">
+                                <Label.BitmapEffect>
+                                    <DropShadowBitmapEffect ShadowDepth="0" Softness="0.25" Direction="210"/>
+                                </Label.BitmapEffect>
+                            </Label>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Catatan">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
+                    <Label Content="Lihat Catatan Data Suhu" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    <Border Padding="5" BorderBrush="#FF7F7F7F" BorderThickness="1" CornerRadius="5">
+                        <StackPanel Orientation="Horizontal">
+                            <DatePicker FontSize="16" Padding="5,5" Margin="0,0,10,0" MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding StartTime}"/>
+                            <Label Content="s/d" FontSize="16"/>
+                            <DatePicker FontSize="16" Padding="5,5" Margin="10,0" MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding EndTime}"/>
+                            <Button Content="Lihat" Padding="15,5" FontSize="16" Click="PopulateDataTable" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
-            </Border>
-        </Grid>
-    </Grid>
+                <DataGrid AlternatingRowBackground = "LightGray" AutoGenerateColumns="False" AlternationCount = "2" Grid.Row="1" ColumnWidth="*" FontSize="16" ItemsSource="{Binding dataList}" Padding="20,0" >
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" IsReadOnly="True" Binding="{Binding ID}"/>
+                        <DataGridTextColumn Header="Sensor 1" IsReadOnly="True" Binding="{Binding Sensor1, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Sensor 2" IsReadOnly="True" Binding="{Binding Sensor2, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Sensor 3" IsReadOnly="True" Binding="{Binding Sensor3, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Sensor 4" IsReadOnly="True" Binding="{Binding Sensor4, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Sensor 5" IsReadOnly="True" Binding="{Binding Sensor5, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Sensor 6" IsReadOnly="True" Binding="{Binding Sensor6, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Rata-rata" IsReadOnly="True" Binding="{Binding Rata2, Mode=OneWay, StringFormat=\{0:0.##\}}"/>
+                        <DataGridTextColumn Header="Waktu" IsReadOnly="True" Binding="{Binding base_waktu, Mode=OneWay, StringFormat=\{0:dd MMM yyyy HH\:mm\:ss\}}" SortDirection="Descending"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>

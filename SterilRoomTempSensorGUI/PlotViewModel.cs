@@ -14,6 +14,7 @@ using OxyPlot;
 using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using ToastNotifications.Lifetime.Clear;
 using ToastNotifications.Messages;
 
 namespace SterilRoomTempSensorGUI
@@ -35,8 +36,9 @@ namespace SterilRoomTempSensorGUI
         public static List<PlotModel> ChartViews { get; private set; } = new List<PlotModel>();
         static List<DateTimeAxis> TimeAxes { get; set; } = new List<DateTimeAxis>();
         static List<LinearAxis> SuhuAxes { get; set; } = new List<LinearAxis>();
+        static List<LineAnnotation> CurrTimeAnnotations { get; set; } = new List<LineAnnotation>(); 
         static List<LineSeries> SensorSuhuSeries { get; set; } = new List<LineSeries>();
-        static List<LineAnnotation> CurrTimeAnnotations { get; set; } = new List<LineAnnotation>();
+        static bool[] IsAbnormal = new bool[6] { false, false, false, false, false, false };
 
         public PlotViewModel()
         {
@@ -110,18 +112,27 @@ namespace SterilRoomTempSensorGUI
 
         public static void AddDataSuhu(int sensor_index, double suhu)
         {
+            //if (sensor_index < 0) return;
             var timeUsed = DateTime.Now;
 
-            if(suhu < 45 || suhu > 55)
+            if (suhu < 45 || suhu > 55)
             {
-                SqliteDbAccess.Current.SaveDataSuhu(sensor_index + 1, timeUsed, suhu, "ABNORMAL");
-                App.Current.Dispatcher.Invoke(() => MainWindow.Current.notifier.ShowWarning($"SUHU ABNORMAL PADA SENSOR {sensor_index + 1}"));
-                ChartViews[sensor_index].Background = OxyColors.Yellow;
+                if (!IsAbnormal[sensor_index])
+                {
+                    IsAbnormal[sensor_index] = true;
+                    ChartViews[sensor_index].Background = OxyColors.Yellow;
+                    var option = new ToastNotifications.Core.MessageOptions() { FontSize = 14 };
+                    App.Current.Dispatcher.Invoke(() => MainWindow.Current.notifier[sensor_index].ShowWarning($"SENSOR {sensor_index + 1} ABNORMAL", option));
+                }
             }
             else
             {
-                SqliteDbAccess.Current.SaveDataSuhu(sensor_index + 1, timeUsed, suhu);
-                ChartViews[sensor_index].Background = OxyColors.Undefined;
+                if (IsAbnormal[sensor_index])
+                {
+                    IsAbnormal[sensor_index] = false;
+                    ChartViews[sensor_index].Background = OxyColors.Undefined;
+                    App.Current.Dispatcher.Invoke(() => MainWindow.Current.notifier[sensor_index].ClearMessages(new ClearAll()));
+                }
             }
 
             SensorSuhuSeries[sensor_index].Points.Add(new DataPoint(Axis.ToDouble(timeUsed), suhu));
@@ -131,13 +142,13 @@ namespace SterilRoomTempSensorGUI
 
             if (CurrTimeAnnotations[sensor_index].X > TimeAxes[sensor_index].ActualMaximum)
             {
-                Debug.WriteLine("GETTING OUT OF BOUND");
+                //Debug.WriteLine("GETTING OUT OF BOUND");
 
                 //and you want to pan only the time axis of your plot (in this example the x-Axis).
                 double firstValue = timeUsed.ToOADate() - DateTimeAxis.ToDateTime(CurrTimeAnnotations[sensor_index].X - TimeAxes[sensor_index].ActualMaximum).ToOADate();
                 double secondValue = timeUsed.ToOADate();
                 
-                Debug.WriteLine($"SeconValue : {secondValue}");
+                //Debug.WriteLine($"SeconValue : {secondValue}");
                 //Transfrom the x-Values (DateTime-Value in OLE Automation format) to screen-coordinates
                 double transformedfirstValue = TimeAxes[sensor_index].Transform(firstValue) - 1;
                 double transformedsecondValue = TimeAxes[sensor_index].Transform(secondValue);
