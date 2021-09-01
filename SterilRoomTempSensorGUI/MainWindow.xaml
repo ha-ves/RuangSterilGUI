@@ -7,7 +7,7 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         
         mc:Ignorable="d"
-        Title="Temperatur Ruang Sterilisasi" Height="900" Width="1600" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png"
+        Title="Temperatur Ruang Sterilisasi" MinWidth="1280" MinHeight="720" Width="1280" Height="720" WindowStartupLocation="CenterScreen" Icon="Resources/temp-icon.png"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -20,9 +20,9 @@
                     <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.ColumnSpan="3" Margin="0,5,0,0" HorizontalAlignment="Center">
-                    <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="TEMPERATUR RUANG STERILISASI" FontSize="30" Padding="0" FontWeight="Black"/>
-                    <Label x:Name="lbl_status" Content="{Binding CurrAppStatus, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Padding="0" FontWeight="Bold" TextOptions.TextFormattingMode="Display"/>
+                <StackPanel Grid.ColumnSpan="3" HorizontalAlignment="Center">
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="TEMPERATUR RUANG STERILISASI" FontSize="24" Padding="0" FontWeight="Black"/>
+                    <Label x:Name="lbl_status" Content="{Binding CurrAppStatus, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Padding="0" FontWeight="Bold" TextOptions.TextFormattingMode="Display"/>
                 </StackPanel>
 
                 <Grid Grid.Row="1" Margin="0,0,25,0">
@@ -84,21 +84,21 @@
         <TabItem Header="Catatan">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="100"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="7*"/>
                 </Grid.RowDefinitions>
-                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
-                    <Label Content="Lihat Catatan Data Suhu" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Label Content="Lihat Catatan Data Suhu" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" Padding="0" Margin="0,-5,0,5"/>
                     <Border Padding="5" BorderBrush="#FF7F7F7F" BorderThickness="1" CornerRadius="5">
                         <StackPanel Orientation="Horizontal">
-                            <DatePicker FontSize="16" Padding="5,5" Margin="0,0,10,0" MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding StartTime}"/>
-                            <Label Content="s/d" FontSize="16"/>
-                            <DatePicker FontSize="16" Padding="5,5" Margin="10,0" MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding EndTime}"/>
-                            <Button Content="Lihat" Padding="15,5" FontSize="16" Click="PopulateDataTable" />
+                            <DatePicker FontSize="14" MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding StartTime}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"/>
+                            <Label Content="s/d" FontSize="16" Margin="5,0" />
+                            <DatePicker FontSize="14"  MinWidth="200" SelectedDateFormat="Long" SelectedDate="{Binding EndTime}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"/>
+                            <Button Content="Lihat" Padding="5" FontSize="14" Click="PopulateDataTable" Margin="10,0,0,0" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
-                <DataGrid AlternatingRowBackground = "LightGray" AutoGenerateColumns="False" AlternationCount = "2" Grid.Row="1" ColumnWidth="*" FontSize="16" ItemsSource="{Binding dataList}" Padding="20,0" >
+                <DataGrid AlternatingRowBackground = "LightGray" AutoGenerateColumns="False" AlternationCount = "2" Grid.Row="1" ColumnWidth="*" FontSize="14" ItemsSource="{Binding dataList}" Padding="20,0" >
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="ID" IsReadOnly="True" Binding="{Binding ID}"/>
                         <DataGridTextColumn Header="Sensor 1" IsReadOnly="True" Binding="{Binding Sensor1, Mode=OneWay, StringFormat=\{0:0.##\}}"/>

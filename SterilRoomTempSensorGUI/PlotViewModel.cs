@@ -97,7 +97,7 @@ namespace SterilRoomTempSensorGUI
                 {
                     Title = $"Sensor {i + 1}",
                     Subtitle = "Update Terakhir : ",
-                    DefaultFontSize = 16,
+                    DefaultFontSize = 14,
                     SubtitleFontWeight = 500,
                     PlotAreaBorderColor = OxyColors.Gray,
                     SubtitleColor = OxyColors.DarkGreen
