@@ -220,18 +220,14 @@ namespace SterilRoomTempSensorGUI
             DataConnController.StartConnectAsync();
         }
 
+#if DEBUG
         public async Task AppStartNormal()
         {
-            ToggleOverlay(false);
-
-#if DEBUG
             //await Task.Delay(2000);
             //dummyTimer.Elapsed += AddData;
             //dummyTimer.Start();
-#endif
         }
 
-#if DEBUG
         Random randomizer = new Random(67676767);
         private void AddData(object sender, ElapsedEventArgs e)
         {
@@ -282,10 +278,14 @@ namespace SterilRoomTempSensorGUI
             }
         }
 
-        public void ToggleOverlay(bool visible)
+        public void ToggleOverlay(bool visible, bool disable = false)
         {
             ConnOverlayVisibility = visible;
             OverlayBlurRadius = visible ? 10 : 0;
+            //if (disable)
+            //{
+            //    (_connOverlay.Children as IEnumerable<System.Windows.UIElement>).OfType<Label>().First().Content = "Test";
+            //}
         }
 
         private void PopulateDataTable(object sender, RoutedEventArgs e)

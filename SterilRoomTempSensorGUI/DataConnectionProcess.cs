@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Shell;
+using System.Windows.Threading;
 
 namespace SterilRoomTempSensorGUI
 {
@@ -59,25 +60,33 @@ namespace SterilRoomTempSensorGUI
                         deviceEP = new IPEndPoint(gatewayIP.Address, 12727);
 
                         TcpClient = new TcpClient() { NoDelay = true };
+
                         if (await Task.WhenAny(TcpClient.Client.ConnectAsync(deviceEP), Task.Delay(1000)) != null && TcpClient.Connected)
                         {
+                            MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
                             IsConnected = true;
                             receivingArgs.RemoteEndPoint = deviceEP;
                             TcpClient.Client.ReceiveAsync(receivingArgs);
                             MainWindow.Current.AppStartNormal();
-                            MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
+                            App.Current.Dispatcher.Invoke(() => MainWindow.Current.ToggleOverlay(false));
                             Debug.WriteLine($"Connected to access point [ {TcpClient.Client.RemoteEndPoint} ]");
                             return;
                         }
                     }
                 }
                 MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
-                MessageBox.Show("Periksa kesesuaian Access Point alat!\nKoneksikan sistem dengan Access Point alat dan klik [OK].", "ERROR : Alat tidak ditemukan!", MessageBoxButton.OK, MessageBoxImage.Error);
+                if(MessageBox.Show("Periksa kesesuaian Access Point alat!\n" +
+                    "Koneksikan sistem dengan Access Point alat dan klik [OK].\n\n" +
+                    "Jika hanya ingin melihat catatan Data Suhu klik [CANCEL]", "ERROR : Alat tidak ditemukan!", MessageBoxButton.OKCancel, MessageBoxImage.Warning)
+                    == MessageBoxResult.Cancel)
+                    App.Current.Dispatcher.Invoke(() => MainWindow.Current.ToggleOverlay(true, true));
             }
             else
             {
                 MainWindow.FlashWindow(new WindowInteropHelper(MainWindow.Current).Handle, false);
-                MessageBox.Show("Platform anda tidak memiliki jaringan (Network). Aplikasi tidak bisa dijalankan.", "ERROR : Tidak ada jaringan!", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Platform anda tidak memiliki jaringan (Network). Monitoring tidak bisa dijalankan\n" +
+                    "Hanya bisa melihat catatan data suhu.", "ERROR : Tidak ada jaringan!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                App.Current.Dispatcher.Invoke(() => MainWindow.Current.ToggleOverlay(true, true));
             }
             StartConnectAsync();
         }
